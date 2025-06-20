@@ -192,3 +192,12 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+
+# mac based
+.DS_Store
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.ResourceFork
+.VolumeIcon.icns
