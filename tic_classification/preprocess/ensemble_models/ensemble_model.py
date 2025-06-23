@@ -487,7 +487,10 @@ def analyze_individual_samples(all_shap_values, features, output_path):
         all_y_test.append(run['y_test'])  # List[n_runs][n_samples]
         all_y_pred.append(run['y_pred'])  
         all_y_pred_proba.append(run['y_pred_proba'])  
-        all_filenames.append(run['filenames'])
+        if isinstance(run['filenames'], (list, tuple)):
+            all_filenames.extend(run['filenames'])
+        else: 
+            all_filenames.extend(run['filenames'].tolist())
 
     all_shap = np.concatenate(all_shap_combined, axis=0)  # shape (total_samples, n_features)
     all_y_test = np.concatenate(all_y_test, axis=0)  # shape (total_samples,)
@@ -502,20 +505,24 @@ def analyze_individual_samples(all_shap_values, features, output_path):
         predicted_class = all_y_pred[i]  # shape (1,)
         true_class = all_y_test[i]  # shape (1,)
 
-        predicted_class_prob = sample_probs[predicted_class]  # probability of predicted class
-        true_class_prob = sample_probs[true_class]  # probability of true class
+        predicted_class_prob = float(sample_probs[predicted_class])
+        true_class_prob = float(sample_probs[true_class])
 
         sample_stats.append({
             'filename': all_filenames[i],
-            'true_class': true_class,
-            'predicted_class': predicted_class,
+            'true_class': int(true_class),
+            'predicted_class': int(predicted_class),
             'predicted_class_prob': predicted_class_prob,
             'true_class_prob': true_class_prob,
-            'total_shap_impact': sample_shap,
-            'correct_prediction': predicted_class == true_class,
+            'total_shap_impact': float(sample_shap),
+            'correct_prediction': bool(predicted_class == true_class),
         })
 
     sample_df = pd.DataFrame(sample_stats)
+    
+    sample_df['predicted_class_prob'] = pd.to_numeric(sample_df['predicted_class_prob'], errors='coerce')
+    sample_df['true_class_prob'] = pd.to_numeric(sample_df['true_class_prob'], errors='coerce')
+    sample_df['total_shap_impact'] = pd.to_numeric(sample_df['total_shap_impact'], errors='coerce')
 
     with open(f'{output_path}/individual_sample_analysis.txt', 'w') as f:
         f.write("Individual Sample Analysis\n")
@@ -710,17 +717,23 @@ def analyze_misclassifications(all_shap_values, features, output_path):
     all_filenames = []
     
     for run in all_shap_values.values():  # List[n_classes][n_samples, n_features]
-        run_combined_shap = np.sum([np.abs(class_shap) for class_shap in run['values']], axis=0)  # shape (n_samples, n_features),
+        stacked_shap = np.stack([np.abs(class_shap) for class_shap in run['values']], axis=0)  # shape (3, n_samples, n_features)
+        run_combined_shap = np.sum(stacked_shap, axis=0)  # Sum across classes: shape (n_samples, n_features)
         all_shap_combined.append(run_combined_shap)  # List[n_runs][n_samples, n_features]
         all_y_test.append(run['y_test'])  # List[n_runs][n_samples] 
         all_y_pred.append(run['y_pred'])
-        all_filenames.append(run['filenames'])
+
+        if isinstance(run['filenames'], (list, tuple)):
+            all_filenames.extend(run['filenames'])
+        else:
+            all_filenames.extend(run['filenames'].tolist())
 
     
     all_shap = np.concatenate(all_shap_combined, axis=0)  # shape (total_samples, n_features)
     all_y_test = np.concatenate(all_y_test, axis=0)  # shape (total_samples,)
     all_y_pred = np.concatenate(all_y_pred, axis=0)  
-    all_filenames = np.concatenate(all_filenames, axis=0)  
+    all_y_pred = all_y_pred.flatten() # shape (total_samples,)
+    all_filenames = np.array(all_filenames)  # shape (total_samples,)
 
     misclassified_mask = (all_y_test != all_y_pred)  # shape (total_samples,)
     correctly_classified_mask = ~misclassified_mask
@@ -732,9 +745,9 @@ def analyze_misclassifications(all_shap_values, features, output_path):
         f.write("-" * 60 + "\n")
 
         if np.any(misclassified_mask):
-            # Misclassified samples
-            misclassified_shap = all_shap[misclassified_mask]
-            correctly_classified_shap = all_shap[correctly_classified_mask]
+
+            misclassified_shap = all_shap[misclassified_mask] 
+            correctly_classified_shap = all_shap[correctly_classified_mask]  
 
             misc_importance = misclassified_shap.mean(0) # shape (n_features,)
             correct_importance = correctly_classified_shap.mean(0) # shape (n_features,)
@@ -1050,7 +1063,6 @@ def evaluate_model(model, pipeline_info, X_test_df, y_test, filenames_test, run_
 
 def main():
 
-    n_runs = N_RUNS
     results = {
         'train_bal_acc': [],
         'train_f1': [],
@@ -1109,8 +1121,6 @@ def main():
         results['test_acc'].append(test_acc)
         results['test_roc_auc'].append(test_roc_auc)
         results['test_cm'].append(test_cm)
-
-    
 
     # Print final averaged results
     print("\n=== FINAL RESULTS ACROSS ALL RUNS ===")
