@@ -38,11 +38,11 @@ DROP_THRESHOLD = 0.8 # Threshold for dropping columns with high missing values
 FILL_NA_VALUE = 0.0 # Value to fill NaNs in the dataset
 
 # model selection
-MODEL_NAME = 'catboost'  # Name of the model to use: 'catboost', 'xgboost', or 'random_forest'
-OUTPUT_PATH='./analysis/catboost'
+MODEL_NAME = 'random_forest'  # Name of the model to use: 'catboost', 'xgboost', or 'random_forest'
+OUTPUT_PATH='./analysis/random_forest/new'
 
 # feature selection
-MAX_FEATURES = 100  # Maximum number of features to select
+MAX_FEATURES = 15  # Maximum number of features to select
 FeatureSelectionThreshold = 'median' # Threshold for feature selection in CatBoost
 
 # base model params
@@ -65,7 +65,7 @@ SUBSAMPLE = 0.7
 COLSAMPLE_BYTREE = 0.7         
 COLSAMPLE_BYLEVEL = 0.7        
 GAMMA = 1.0                 
-L1_REG = 15.0 
+L1_REG = 2.0 
 
 # final Random Forest params
 MAX_SAMPLES =  0.8786648106634825  # Fraction of samples per tree
@@ -147,9 +147,9 @@ def load_data(train_csv, test_csv, drop_threshold=0.8, fill_na_value=0.0):
 
 def train_model(X_train, y_train, X_test, y_test, feature_names=None, class_weights=None, random_state=42, feature_sel_threshold='median', max_selected_features=100):
     """
-    Train a CatBoost model with feature selection and return the trained model and evaluation metrics.
+    Train a model with feature selection and return the trained model and evaluation metrics.
     """
-    print("Training CatBoost model...")
+    print("Training model...")
 
     sample_weights = np.array([class_weights[y] for y in y_train]) if class_weights else None
 
