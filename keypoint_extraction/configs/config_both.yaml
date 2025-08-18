@@ -1,0 +1,36 @@
+wandb:
+  project: "tic-lambda"
+  entity: "******"  # wandb username
+
+data:
+  raw_dir: "/hpc/project/ag-mueller-vahl/tic_videos/both" # change it always to the where is your dataset
+  processed_dir: "/home/leinehome/mh-hannover.local/bakhshaj/tic_classifcation/data/processed/both" # change it always to the where processed data is saved
+  frame_rate: 1
+  desired_width: 1280
+  desired_height: 720
+  gamma: 1.0
+  save_frames: False
+  visualization_output_dir: 'visualizations'  # Directory to save visualizations
+  visualize: False
+  movement_threshold: 30
+
+model:
+  model_size: 'h' #  #@param ['s', 'b', 'l', 'h']
+  yolo_size: 's' #@param ['s', 'n']
+  dataset: 'wholebody'  #@param ['coco_25', 'coco', 'wholebody', 'mpii', 'aic', 'ap10k', 'apt36k']
+  ext: '.pth'
+  ext_yolo: '.pt'
+  model_type: "torch"
+  yolo_type:  "torch"
+  repo_id: 'JunkyByte/easy_ViTPose'
+
+face_model:
+  repo_id: 'face_models'
+
+keypoints:
+  min_body_keypoints: 5  # minimum number of body keypoints 
+  min_face_keypoints: 30  # minimum number of face keypoints
+
+
+
+

@@ -1,0 +1,9 @@
+ scp -r /home/leinehome/mh-hannover.local/bakhshaj/tic_classifcation/data/processed/ftlb/* bakhshaj@login.cluster.mh-hannover.local:/project/ag-mueller-vahl/tic_videos/FTLB/data_extracted/high
+
+
+
+ rm -rf /home/leinehome/mh-hannover.local/bakhshaj/tic_classifcation/data/processed/ftlb/*
+
+
+
+ /project/ag-mueller-vahl/tic_videos/FTLB/data_extracted/high
